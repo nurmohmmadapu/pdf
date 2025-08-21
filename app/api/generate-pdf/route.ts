@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       return { width, height };
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pdfOptions: any = {
       printBackground: true,
       margin: { top: "10mm", bottom: "10mm", left: "10mm", right: "10mm" },
