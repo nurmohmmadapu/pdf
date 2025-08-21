@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     // Launch Puppeteer with font rendering args
     const browser = await puppeteer.launch({
-      headless: "new",
+      headless: true,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
