@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 
@@ -7,30 +6,23 @@ export async function POST(req: NextRequest) {
 
   try {
     const googleFontCss = `
-  <style>
-    /* Google Fonts Tiro Bangla */
-    @import url('https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap');
-
-    body, p, div, span, table, td {
-      font-family: 'Tiro Bangla', serif;
-      font-size: 14px;
-      line-height: 1.8;
-      margin: 0;
-      padding: 5mm;
-      background: #fff;
-    }
-  </style>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap');
+        body, p, div, span, table, td {
+          font-family: 'Tiro Bangla', serif;
+          font-size: 14px;
+          line-height: 1.8;
+          margin: 0;
+          padding: 5mm;
+          background: #fff;
+        }
+      </style>
     `;
 
-    // Inject Google Fonts CSS inside <head>
-    const finalHtml = html.replace(
-      /<head>/i,
-      `<head>${googleFontCss}`
-    );
+    const finalHtml = html.replace(/<head>/i, `<head>${googleFontCss}`);
 
-    // Launch Puppeteer with font rendering args
     const browser = await puppeteer.launch({
-      headless: true,
+      headless: true, // boolean safe
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
@@ -42,11 +34,9 @@ export async function POST(req: NextRequest) {
     const page = await browser.newPage();
     await page.setContent(finalHtml, { waitUntil: "networkidle0" });
 
-    // Wait for font to load
     await page.evaluate(() => document.fonts.ready);
-    await new Promise((r) => setTimeout(r, 1000)); // একটু delay দিয়ে font load নিশ্চিত করবো
+    await new Promise((r) => setTimeout(r, 1000));
 
-    // Read size from meta tags
     const size = await page.evaluate(() => {
       const width = document.querySelector('meta[name="pdf:width"]')?.getAttribute("content");
       const height = document.querySelector('meta[name="pdf:height"]')?.getAttribute("content");
@@ -63,14 +53,16 @@ export async function POST(req: NextRequest) {
       pdfOptions.width = size.width;
       pdfOptions.height = size.height;
     } else {
-      pdfOptions.format = "A4"; // fallback
+      pdfOptions.format = "A4";
     }
 
     const pdfBuffer = await page.pdf(pdfOptions);
-
     await browser.close();
 
-    return new NextResponse(pdfBuffer, {
+    // Convert Buffer to Blob for NextResponse
+    const pdfBlob = new Blob([pdfBuffer], { type: "application/pdf" });
+
+    return new NextResponse(pdfBlob, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
