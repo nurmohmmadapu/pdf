@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     const finalHtml = html.replace(/<head>/i, `<head>${googleFontCss}`);
 
     const browser = await puppeteer.launch({
-      headless: true, // boolean safe
+      headless: true,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
@@ -59,10 +59,10 @@ export async function POST(req: NextRequest) {
     const pdfBuffer = await page.pdf(pdfOptions);
     await browser.close();
 
-    // Convert Buffer to Blob for NextResponse
-    const pdfBlob = new Blob([pdfBuffer], { type: "application/pdf" });
+    // ✅ TypeScript-safe Uint8Array conversion
+    const pdfArray = new Uint8Array(pdfBuffer);
 
-    return new NextResponse(pdfBlob, {
+    return new NextResponse(pdfArray, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
